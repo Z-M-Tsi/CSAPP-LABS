@@ -198,7 +198,9 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int cond0 = !((x >> 4) ^ 0x3); // Check if the first 4 bits are 0011 (0x30 to 0x39)
+  int cond1 = (((x & 0xF) + (~0xA + 1)) >> 31) & 1; // Check if the last 4 bits are less than 10 (0x0 to 0x9)
+  return cond0 & cond1;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -208,7 +210,9 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  x = !!x;
+  x = ~x + 1;
+  return (x & y) | (~x & z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -218,7 +222,16 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  /* If x and y have different signs, we can determine the result
+     based on their signs, in order to avoid overflow issues. */
+  int sx = (x >> 31) & 1;          
+  int sy = (y >> 31) & 1;          
+  int signDiff = sx ^ sy; // 1 if x and y have different signs, 0 if they have the same sign
+  int cond_1 = sx & !sy; // If x<0 and y>=0, x < y    
+
+  int diff = x + (~y + 1);         
+  int diffSign = (diff >> 31) & 1; 
+  return cond_1 | (!signDiff & diffSign) | (!signDiff & !diff);
 }
 //4
 /* 
@@ -230,7 +243,7 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  return ((x | (~x + 1)) >> 31) + 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
