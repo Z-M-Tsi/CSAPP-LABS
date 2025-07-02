@@ -258,9 +258,10 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  x = x ^ (x >> 31); // If x is negative, flip the bits to make it positive
   int bits = 1; // Start with 1 bit for the sign bit
   int tmp;
+
+  x = x ^ (x >> 31); // If x is negative, flip the bits to make it positive
 
   // Check if the highest 16 bits are non-zero
   tmp = !!(x >> 16); bits += (tmp << 4); x >>= (tmp << 4);
@@ -294,7 +295,29 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  unsigned sign = uf & 0x80000000;
+  unsigned exp  = (uf >> 23) & 0xFF;
+  unsigned frac = uf & 0x7FFFFF;
+
+  if (exp == 0) {
+    frac <<= 1;
+    if (frac & 0x800000) {  
+      exp = 1;
+      frac &= 0x7FFFFF;
+    }
+      return sign | (exp << 23) | frac;
+  }
+
+  if (exp == 0xFF) {
+    return uf;
+  }
+
+  exp += 1;
+  if (exp == 0xFF) {
+    frac = 0;
+  }
+  
+  return sign | (exp << 23) | frac;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -309,7 +332,24 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  int sign = uf >> 31;
+  int exp = (uf >> 23) & 0xFF;
+  int frac = uf & 0x7FFFFF;
+  int E = exp - 127;
+
+  if (exp == 255) return 0x80000000u; // NaN or Infinity
+  if (E < 0) return 0;                // |f| < 1 ⇒ truncate to 0
+  if (E > 31) return 0x80000000u;     // Overflow for int
+
+  frac = frac | 0x800000;
+
+  if (E > 23) {
+    frac <<= (E - 23);
+  } else {
+    frac >>= (23 - E);
+  }
+  
+  return sign ? -frac : frac; // Apply sign
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -325,5 +365,23 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  int exp = x + 127;
+
+  // Too small: less than minimum denorm (2^-149)
+  if (x < -149) return 0;
+
+  // Denorm range
+  if (x < -126) {
+    // 2^(x) = 2^(-149) ~ 2^(-127)
+    // Shift 1 to right position in frac field
+    return 1 << (x + 149);
+  }
+
+  // Normalized range
+  if (exp < 255) {
+    return exp << 23;
+  }
+
+  // Too large
+  return 0x7f800000;
 }
