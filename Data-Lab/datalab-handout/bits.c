@@ -258,7 +258,28 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  x = x ^ (x >> 31); // If x is negative, flip the bits to make it positive
+  int bits = 1; // Start with 1 bit for the sign bit
+  int tmp;
+
+  // Check if the highest 16 bits are non-zero
+  tmp = !!(x >> 16); bits += (tmp << 4); x >>= (tmp << 4);
+
+  // Check if the highest 8 bits are non-zero
+  tmp = !!(x >> 8); bits += (tmp << 3); x >>= (tmp << 3);
+
+  // Check if the highest 4 bits are non-zero
+  tmp = !!(x >> 4); bits += (tmp << 2); x >>= (tmp << 2);
+
+  // Check if the highest 2 bits are non-zero
+  tmp = !!(x >> 2); bits += (tmp << 1); x >>= (tmp << 1);
+
+  // Check if the highest bit is non-zero
+  tmp = !!(x >> 1); bits += tmp; x >>= tmp;
+  
+  bits += x;
+
+  return bits;
 }
 //float
 /* 
