@@ -108,14 +108,14 @@ void phase_3() {
 
     int expected;
     switch (idx) { 
-        case 0: expected = 0xcf; break;
-        case 1: expected = 0x2c3; break;
-        case 2: expected = 0x100; break;
-        case 3: expected = 0x185; break;
-        case 4: expected = 0xce; break;
-        case 5: expected = 0x2aa; break;
-        case 6: expected = 0x147; break;
-        case 7: expected = 0x137; break;
+        case 1: expected = 0xcf; break;
+        case 2: expected = 0x2c3; break;
+        case 3: expected = 0x100; break;
+        case 4: expected = 0x185; break;
+        case 5: expected = 0xce; break;
+        case 6: expected = 0x2aa; break;
+        case 7: expected = 0x147; break;
+        case 8: expected = 0x137; break;
         default: explode_bomb(); 
     }
 
